@@ -27,7 +27,11 @@ def compute_dot(u, d):
 @app.before_request
 def before_request():
     with app.open_resource("abstracts.json") as f:
-        flask.g.abstracts = json.load(f)
+        data = json.load(f)
+
+    flask.g.abstracts = {}
+    for doc in data:
+        flask.g.abstracts[doc["id"]] = doc
 
 
 @app.route("/")
@@ -38,12 +42,17 @@ def index():
         q = [w for s in map(word_tokenize, sent_tokenize(q)) for w in s]
         vec = words2dict(q)
         scores = []
-        for abstract in flask.g.abstracts:
-            scores.append(compute_dot(vec, abstract["counts"]))
-        inds = sorted(zip(range(len(scores)), scores), key=lambda o: o[1],
-                      reverse=True)
+        for k, abstract in flask.g.abstracts.iteritems():
+            scores.append((k, compute_dot(vec, abstract["counts"])))
+        inds = sorted(scores, key=lambda o: o[1], reverse=True)
         abstracts = [flask.g.abstracts[i] for i, score in inds[:10]]
 
-    print(abstracts)
-
     return flask.render_template("index.html", abstracts=abstracts)
+
+
+@app.route("/abs/<abs_id>")
+def abstract(abs_id):
+    doc = flask.g.abstracts.get(abs_id, None)
+    if doc is None:
+        return flask.abort(404)
+    return doc["title"]

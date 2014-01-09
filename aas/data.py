@@ -21,9 +21,15 @@ class Dataset(object):
             for pid, pres in session["presentations"].iteritems():
                 self.data.append({
                     "id": pres["id"],
+                    "session_id": key,
+                    "session_name": session["title"],
+                    "room": session["room"],
                     "words": self.parse(pres["title"]+" "+pres["abstract"]),
                     "title": pres["title"],
-                    "abstract": pres["abstract"]
+                    "abstract": pres["abstract"],
+                    "date": session["date"],
+                    "type": session["type"],
+                    "authors": [a[0] for a in pres["authors"]],
                 })
 
     def parse(self, text):

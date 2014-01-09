@@ -5,6 +5,7 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 import json
+from math import log
 from collections import defaultdict
 
 from aas.data import Dataset
@@ -21,13 +22,21 @@ if __name__ == "__main__":
     for doc in dataset:
         vec = words2dict(doc["words"])
         for k, v in vec.iteritems():
-            corpus[k] += v
-        abstracts.append(dict(id=doc["id"], counts=vec, title=doc["title"],
-                              abstract=doc["abstract"]))
+            corpus[k] += 1
+        doc["counts"] = vec
+        abstracts.append(doc)
     print("Finished.")
 
-    print("Saving data files...")
-    with open("www/corpus.json", "w") as f:
-        json.dump(dict(corpus), f)
-    with open("www/abstracts.json", "w") as f:
-        json.dump(abstracts, f)
+    print("Normalizing be IDF...")
+    d = len(abstracts)
+    for w in corpus:
+        corpus[w] = log(d/corpus[w])
+    for abstract in abstracts:
+        for w in abstract["counts"]:
+            abstract["counts"][w] *= corpus[w]
+    print("Finished.")
+
+    print("Saving data file...")
+    with open("aas/abstracts.json", "w") as f:
+        json.dump(abstracts, f, sort_keys=True, indent=2,
+                  separators=(",", ": "))
