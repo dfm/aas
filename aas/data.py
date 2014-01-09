@@ -29,6 +29,10 @@ class Dataset(object):
         for id_, doc in self.data.iteritems():
             yield doc
 
+    def iteritems(self):
+        for id_, doc in self.data.iteritems():
+            yield id_, doc
+
 
 if __name__ == "__main__":
     print("Loading")
