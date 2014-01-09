@@ -24,6 +24,18 @@ def compute_dot(u, d):
     return value / sqrt(norm)
 
 
+def order_by(q):
+    if q is None:
+        return None
+    q = [w for s in map(word_tokenize, sent_tokenize(q)) for w in s]
+    vec = words2dict(q)
+    scores = []
+    for k, abstract in flask.g.abstracts.iteritems():
+        scores.append((k, compute_dot(vec, abstract["counts"])))
+    inds = sorted(scores, key=lambda o: o[1], reverse=True)
+    return [flask.g.abstracts[i] for i, score in inds[:10]]
+
+
 @app.before_request
 def before_request():
     with app.open_resource("abstracts.json") as f:
@@ -37,16 +49,7 @@ def before_request():
 @app.route("/")
 def index():
     q = flask.request.args.get("q", None)
-    abstracts = None
-    if q is not None:
-        q = [w for s in map(word_tokenize, sent_tokenize(q)) for w in s]
-        vec = words2dict(q)
-        scores = []
-        for k, abstract in flask.g.abstracts.iteritems():
-            scores.append((k, compute_dot(vec, abstract["counts"])))
-        inds = sorted(scores, key=lambda o: o[1], reverse=True)
-        abstracts = [flask.g.abstracts[i] for i, score in inds[:10]]
-
+    abstracts = order_by(q)
     return flask.render_template("index.html", abstracts=abstracts)
 
 
@@ -55,4 +58,6 @@ def abstract(abs_id):
     doc = flask.g.abstracts.get(abs_id, None)
     if doc is None:
         return flask.abort(404)
-    return doc["title"]
+    abstracts = order_by(doc["title"] + " " + doc["abstract"])
+    return flask.render_template("abstract.html", doc=doc,
+                                 abstracts=abstracts[1:])

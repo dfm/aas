@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>AAS Abstract Recommendations</title>
+
+</head>
+<body>
+
+{% block contents %}{% endblock %}
+
+{% if abstracts %}
+<ul>
+{% for abstract in abstracts %}
+<li><a href="{{ url_for('.abstract', abs_id=abstract.id) }}">[{{ abstract.id }}] {{ abstract.title }}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+</body>
+</html>

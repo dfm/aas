@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block contents %}
+<h2>{{ doc.title }}</h2>
+<b>{{ doc.date }}</b><br>
+<b>{{ doc.room }}</b> - {{ doc.type }}
+<p>{{ doc.abstract }}</p>
+
+<h3>Similar abstracts</h3>
+{% endblock %}

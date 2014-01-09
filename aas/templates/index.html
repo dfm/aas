@@ -1,28 +1,9 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+{% extends "base.html" %}
 
-    <title>AAS Abstract Recommendations</title>
-
-</head>
-<body>
-
+{% block contents %}
 <form>
 <textarea rows="10" cols="100" name="q" placeholder="Enter some words…">{{ request.args["q"] }}</textarea>
 <br>
 <input type="submit" value="Recommend"></input>
 </form>
-
-{% if abstracts %}
-<ul>
-{% for abstract in abstracts %}
-<li>[{{ abstract.id }}] {{ abstract.title }}</li>
-{% endfor %}
-</ul>
-{% endif %}
-
-<script src="jquery-1.10.2.min.js"></script>
-
-</body>
-</html>
+{% endblock %}
