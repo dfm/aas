@@ -22,10 +22,10 @@ if __name__ == "__main__":
                       (doc["session_id"], ))
             session_id = c.fetchone()
             if session_id is None:
-                c.execute("""insert into sessions(aas_id,title,date,room)
-                             values(?,?,?,?)
+                c.execute("""insert into sessions(aas_id,title,date,room,type)
+                             values(?,?,?,?,?)
                           """, (doc["session_id"], None, doc["date"],
-                                doc["room"]))
+                                doc["room"], doc["type"]))
                 conn.commit()
                 c.execute("select id from sessions where aas_id=?",
                           (doc["session_id"], ))

@@ -7,21 +7,7 @@
 
 </head>
 <body>
- 
-<form>
-<br>
-<input type="checkbox" id="poster"> Posters<br>
-<input type="checkbox" id="talks"> Talks<br>
-</form>
 
-<script type='text/javascript'>
-  document.getElementById("posters").checked = true;
-  document.getElementById("talks").checked = true;
-  var posters_check = document.getElementById("posters").checked;
-  var talks_check = document.getElementById("talks").checked;  
-</script>
-  
-  
 {% block contents %}{% endblock %}
 
 {% if abstracts %}

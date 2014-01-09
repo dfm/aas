@@ -35,10 +35,9 @@ def order_by(q, query=None, args=()):
     with flask.g.db as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        query0 = "select * from abstracts"
-        if query is not None:
-            query0 += " " + query
-        c.execute(query0, args)
+        if query is None:
+            query = "select * from abstracts"
+        c.execute(query, args)
         abstracts = c.fetchall()
 
     for i, abstract in enumerate(abstracts):
@@ -62,7 +61,16 @@ def teardown_request(exception):
 @app.route("/")
 def index():
     q = flask.request.args.get("q", None)
-    abstracts = order_by(q)
+    if "posters" in flask.request.args or "talks" in flask.request.args:
+        query = """select *,
+                   (select type from sessions where id=session_id) as s
+                   from where s.type=?
+                """
+        args = ("Oral Session", )
+        abstracts = order_by(q, query=query, args=args)
+
+    else:
+        abstracts = order_by(q)
     return flask.render_template("index.html", abstracts=abstracts)
 
 
@@ -73,8 +81,17 @@ def abstract(abs_id):
         c = conn.cursor()
         c.execute("select * from abstracts where aas_id=?", (abs_id,))
         doc = c.fetchone()
-    if doc is None:
-        return flask.abort(404)
+
+        if doc is None:
+            return flask.abort(404)
+
+        c.execute("select * from sessions where id=?", (doc["session_id"],))
+        session = c.fetchone()
+
+        c.execute("select name from authors where abstract_id=?",
+                  (doc["id"],))
+        authors = map(lambda a: a[0], c.fetchall())
     abstracts = order_by(doc["title"] + " " + doc["abstract"])
     return flask.render_template("abstract.html", doc=doc,
-                                 abstracts=abstracts[1:])
+                                 abstracts=abstracts[1:],
+                                 session_info=session, authors=authors)

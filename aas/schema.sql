@@ -6,6 +6,7 @@ create table sessions (
   aas_id integer,
   title text,
   date text,
+  type text,
   room text
 );
 

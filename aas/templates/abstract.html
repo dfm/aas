@@ -2,8 +2,9 @@
 
 {% block contents %}
 <h2>{{ doc.title }}</h2>
-<b>{{ doc.date }}</b><br>
-<b>{{ doc.room }}</b> - {{ doc.type }}
+<i>{{ authors|join(", ") }}</i><br>
+<b>{{ session_info.date }}</b><br>
+<b>{{ session_info.room }}</b> - {{ session_info.type }}
 <p>{{ doc.abstract }}</p>
 
 <h3>Similar abstracts</h3>
