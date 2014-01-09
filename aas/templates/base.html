@@ -13,7 +13,7 @@
 {% if abstracts %}
 <ul>
 {% for abstract in abstracts %}
-<li><a href="{{ url_for('.abstract', abs_id=abstract.id) }}">[{{ abstract.id }}] {{ abstract.title }}</a></li>
+<li><a href="{{ url_for('.abstract', abs_id=abstract.aas_id) }}">[{{ abstract.aas_id }}] {{ abstract.title }}</a></li>
 {% endfor %}
 </ul>
 {% endif %}

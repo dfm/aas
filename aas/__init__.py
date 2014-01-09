@@ -7,6 +7,7 @@ __all__ = ["app"]
 
 import flask
 import json
+import sqlite3
 from math import sqrt
 
 from nltk import sent_tokenize, word_tokenize
@@ -24,26 +25,38 @@ def compute_dot(u, d):
     return value / sqrt(norm)
 
 
-def order_by(q):
+def order_by(q, query=None, args=()):
     if q is None:
         return None
     q = [w for s in map(word_tokenize, sent_tokenize(q)) for w in s]
     vec = words2dict(q)
     scores = []
-    for k, abstract in flask.g.abstracts.iteritems():
-        scores.append((k, compute_dot(vec, abstract["counts"])))
+
+    with flask.g.db as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        query0 = "select * from abstracts"
+        if query is not None:
+            query0 += " " + query
+        c.execute(query0, args)
+        abstracts = c.fetchall()
+
+    for i, abstract in enumerate(abstracts):
+        scores.append((i, compute_dot(vec, json.loads(abstract["counts"]))))
     inds = sorted(scores, key=lambda o: o[1], reverse=True)
-    return [flask.g.abstracts[i] for i, score in inds[:10]]
+    return [abstracts[i] for i, score in inds[:10]]
 
 
 @app.before_request
 def before_request():
-    with app.open_resource("abstracts.json") as f:
-        data = json.load(f)
+    flask.g.db = sqlite3.connect("aas/aas.db")
 
-    flask.g.abstracts = {}
-    for doc in data:
-        flask.g.abstracts[doc["id"]] = doc
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(flask.g, "db", None)
+    if db is not None:
+        db.close()
 
 
 @app.route("/")
@@ -55,7 +68,11 @@ def index():
 
 @app.route("/abs/<abs_id>")
 def abstract(abs_id):
-    doc = flask.g.abstracts.get(abs_id, None)
+    with flask.g.db as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("select * from abstracts where aas_id=?", (abs_id,))
+        doc = c.fetchone()
     if doc is None:
         return flask.abort(404)
     abstracts = order_by(doc["title"] + " " + doc["abstract"])
