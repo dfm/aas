@@ -16,27 +16,19 @@ class Dataset(object):
         with open(path, "r") as f:
             sessions = json.load(f)
 
-        self.data = {}
+        self.data = []
         for key, session in sessions.iteritems():
             for pid, pres in session["presentations"].iteritems():
-                self.data[pres["id"]] = self.parse(pres["title"]
-                                                   + " " + pres["abstract"])
+                self.data.append({
+                    "id": pres["id"],
+                    "words": self.parse(pres["title"]+" "+pres["abstract"]),
+                    "title": pres["title"],
+                    "abstract": pres["abstract"]
+                })
 
     def parse(self, text):
         return [w for s in map(word_tokenize, sent_tokenize(text)) for w in s]
 
     def __iter__(self):
-        for id_, doc in self.data.iteritems():
+        for doc in self.data:
             yield doc
-
-    def iteritems(self):
-        for id_, doc in self.data.iteritems():
-            yield id_, doc
-
-
-if __name__ == "__main__":
-    print("Loading")
-    dataset = Dataset("data/abstracts.json")
-    print("Loaded")
-    for doc in dataset:
-        print(doc)
