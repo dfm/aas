@@ -8,12 +8,23 @@
 </head>
 <body>
 
+<p>
+This is a proof of concept built at the AAS223 Hack Day on 2014-01-09 by
+<a href="https://github.com/astrodsg">Dylan Gregersen</a>,
+<a href="https://github.com/dima127">Dmitry Malyshev</a>, and
+<a href="https://github.com/dfm">Dan Foreman-Mackey</a>.
+It provides recommendations for talks that you should have gone to and
+posters that you should have seen based on your interests.
+The code is (obviously) <a href="https://github.com/dfm/aas">on GitHub</a>
+licensed under the MIT license but remember that it's a total hack.
+</p>
+
 {% block contents %}{% endblock %}
 
 {% if abstracts %}
 <ul>
 {% for abstract in abstracts %}
-<li><a href="{{ url_for('.abstract', abs_id=abstract.aas_id) }}">[{{ abstract.aas_id }}] {{ abstract.title }}</a></li>
+<li><a href="{{ url_for('.abstract', abs_id=abstract.aas_id) }}">[{{ abstract.aas_id }}] {{ abstract.title }}</a> ({{ abstract.type }})</li>
 {% endfor %}
 </ul>
 {% endif %}

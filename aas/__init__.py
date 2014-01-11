@@ -14,6 +14,7 @@ from nltk import sent_tokenize, word_tokenize
 from .abstract_parse import words2dict
 
 app = flask.Flask(__name__)
+app.config["DATABASE_PATH"] = "aas/aas.db"
 
 
 def compute_dot(u, d):
@@ -36,7 +37,9 @@ def order_by(q, query=None, args=()):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         if query is None:
-            query = "select * from abstracts"
+            query = """select *,
+                    (select type from sessions where id=abstracts.session_id)
+                        as type from abstracts"""
         c.execute(query, args)
         abstracts = c.fetchall()
 
@@ -48,7 +51,7 @@ def order_by(q, query=None, args=()):
 
 @app.before_request
 def before_request():
-    flask.g.db = sqlite3.connect("aas/aas.db")
+    flask.g.db = sqlite3.connect(app.config["DATABASE_PATH"])
 
 
 @app.teardown_request
@@ -60,17 +63,32 @@ def teardown_request(exception):
 
 @app.route("/")
 def index():
+    abstracts = None
     q = flask.request.args.get("q", None)
-    if "posters" in flask.request.args or "talks" in flask.request.args:
-        query = """select *,
-                   (select type from sessions where id=session_id) as s
-                   from where s.type=?
-                """
-        args = ("Oral Session", )
-        abstracts = order_by(q, query=query, args=args)
+    if q is not None and len(q.strip()):
+        p = "posters" in flask.request.args
+        t = "talks" in flask.request.args
+        if p or t:
+            if p and t:
+                sq = "type=? or type=?"
+                args = ("Oral Session", "Poster Session")
+            else:
+                sq = "type=?"
+                args = ("Poster Session", ) if p else ("Oral Session", )
 
-    else:
-        abstracts = order_by(q)
+            query = """
+                    select *,
+                    (select type from sessions where id=abstracts.session_id)
+                        as type
+                    from abstracts
+                    where session_id in
+                            (select id from sessions where {0})
+                    """.format(sq)
+            abstracts = order_by(q, query=query, args=args)
+
+        else:
+            abstracts = order_by(q)
+
     return flask.render_template("index.html", abstracts=abstracts)
 
 

@@ -5,11 +5,13 @@ import numpy as np
 
 def norm2(g, a):
     """
-    calculates the norm squared of vector a with metric g
+    calculates the norm squared of vector "a" with metric "g"
     INPUT:
         g, a - dictionaries
-    OUTOUT:
-        |a|^2 - float, the dot norm squared of a
+    OUTPUT:
+        |a|^2 - float, the dot norm squared of "a"
+        
+    Written: Jan 9, 2014, Dmitry Malyshev (SLAC), MIT licence 
         
     """
     res = 0.
@@ -30,8 +32,10 @@ def product(g, a, b):
         a - dictionary, user vector
         b - dictionary, test text vector
         
-    OUTOUT:
+    OUTPUT:
         (a, b) - float, the dot product
+        
+    Written: Jan 9, 2014, Dmitry Malyshev (SLAC), MIT licence
         
     """
     
