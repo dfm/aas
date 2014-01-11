@@ -36,7 +36,9 @@ def order_by(q, query=None, args=()):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         if query is None:
-            query = "select * from abstracts"
+            query = """select *,
+                    (select type from sessions where id=abstracts.session_id)
+                        as type from abstracts"""
         c.execute(query, args)
         abstracts = c.fetchall()
 
@@ -60,24 +62,31 @@ def teardown_request(exception):
 
 @app.route("/")
 def index():
+    abstracts = None
     q = flask.request.args.get("q", None)
-    p, t = ("posters" in flask.request.args), ("talks" in flask.request.args)
-    if p or t:
-        if p and t:
-            sq = "type=? or type=?"
-            args = ("Oral Session", "Poster Session")
+    if q is not None and len(q.strip()):
+        p = "posters" in flask.request.args
+        t = "talks" in flask.request.args
+        if p or t:
+            if p and t:
+                sq = "type=? or type=?"
+                args = ("Oral Session", "Poster Session")
+            else:
+                sq = "type=?"
+                args = ("Poster Session", ) if p else ("Oral Session", )
+
+            query = """
+                    select *,
+                    (select type from sessions where id=abstracts.session_id)
+                        as type
+                    from abstracts
+                    where session_id in
+                            (select id from sessions where {0})
+                    """.format(sq)
+            abstracts = order_by(q, query=query, args=args)
+
         else:
-            sq = "type=?"
-            args = ("Poster Session", ) if p else ("Oral Session", )
-
-        query = """select * from abstracts
-                   where session_id in
-                        (select id from sessions where {0})
-                """.format(sq)
-        abstracts = order_by(q, query=query, args=args)
-
-    else:
-        abstracts = order_by(q)
+            abstracts = order_by(q)
 
     return flask.render_template("index.html", abstracts=abstracts)
 
