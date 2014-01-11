@@ -14,6 +14,7 @@ from nltk import sent_tokenize, word_tokenize
 from .abstract_parse import words2dict
 
 app = flask.Flask(__name__)
+app.config["DATABASE_PATH"] = "aas/aas.db"
 
 
 def compute_dot(u, d):
@@ -50,7 +51,7 @@ def order_by(q, query=None, args=()):
 
 @app.before_request
 def before_request():
-    flask.g.db = sqlite3.connect("aas/aas.db")
+    flask.g.db = sqlite3.connect(app.config["DATABASE_PATH"])
 
 
 @app.teardown_request
