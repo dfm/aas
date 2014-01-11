@@ -9,11 +9,13 @@ __author__ = "adrn <adrn@astro.columbia.edu>"
 # Standard library
 import os, sys
 import json
+import time
 
 # Third-party
 import numpy as np
 import sklearn
-from sklearn.decomposition import SparsePCA
+from sklearn.cluster import KMeans, MiniBatchKMeans
+from scipy.sparse import bsr_matrix
 
 def main():
 
@@ -35,9 +37,17 @@ def main():
                 X[jj,ii] = abstract['counts'][corpus[ii][0]]
             except KeyError:
                 continue
+    X = bsr_matrix(X)
+    
+    print("Initializing k-means")
+    km = MiniBatchKMeans(n_clusters=50, init='k-means++', n_init=1,
+                         init_size=1000, batch_size=1000, verbose=True)
+    print("fitting")
+    t0 = time.time()
+    km.fit(X) # X is nsamples, nfeatures
+    print("Took {} seconds".format(time.time()-t0))
 
-    pca = SparsePCA(alpha=100., tol=1e-4)
-    pca.fit(X[:25]) # X is nsamples, nfeatures
+    return km
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
