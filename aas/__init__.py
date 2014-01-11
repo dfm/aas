@@ -61,16 +61,24 @@ def teardown_request(exception):
 @app.route("/")
 def index():
     q = flask.request.args.get("q", None)
-    if "posters" in flask.request.args or "talks" in flask.request.args:
-        query = """select *,
-                   (select type from sessions where id=session_id) as s
-                   from where s.type=?
-                """
-        args = ("Oral Session", )
+    p, t = ("posters" in flask.request.args), ("talks" in flask.request.args)
+    if p or t:
+        if p and t:
+            sq = "type=? or type=?"
+            args = ("Oral Session", "Poster Session")
+        else:
+            sq = "type=?"
+            args = ("Poster Session", ) if p else ("Oral Session", )
+
+        query = """select * from abstracts
+                   where session_id in
+                        (select id from sessions where {0})
+                """.format(sq)
         abstracts = order_by(q, query=query, args=args)
 
     else:
         abstracts = order_by(q)
+
     return flask.render_template("index.html", abstracts=abstracts)
 
 
